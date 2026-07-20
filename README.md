@@ -6,8 +6,8 @@
   <img src="./docs/icon.png" alt="Clash" width="128" />
   <br>
   <br>
-  <a href="https://github.com/yandexru45/netshift/releases">
-    <img src="https://img.shields.io/github/release/yandexru45/netshift/all.svg">
+  <a href="https://github.com/vbymrf/netshift_fork_add_block/releases">
+    <img src="https://img.shields.io/github/release/vbymrf/netshift_fork_add_block/all.svg">
   </a>
 </p>
 <h3 align="center"><a href="https://github.com/sagernet/sing-box">Sing-box</a> client for Openwrt</h3>
@@ -23,7 +23,7 @@
 
 **NetShift** - маршрутизатор трафика для OpenWrt. Направляйте нужные ресурсы в туннель, а остальное - напрямую. Открытое ПО на базе [sing-box](https://github.com/SagerNet/sing-box).
 
-Это форк [itdoginfo/podkop](https://github.com/itdoginfo/podkop), значительно расширяющий функциональность.
+Это форк [itdoginfo/podkop](https://github.com/itdoginfo/podkop), значительно расширяющий функциональность. Данный репозиторий — **неофициальный форк** [официального NetShift](https://github.com/yandexru45/netshift) с добавленной **fail-closed** защитой. Установка и self-update пакетов NetShift идут **только с этого репозитория** ([`vbymrf/netshift_fork_add_block`](https://github.com/vbymrf/netshift_fork_add_block)).
 
 > [!WARNING]
 > Проект находится в стадии бета-версии. Возможны ошибки, нестабильная работа и существенные изменения функциональности.
@@ -102,23 +102,76 @@
 
 ```sh
 mv /etc/config/netshift /etc/config/netshift-070
-wget -O /etc/config/netshift https://raw.githubusercontent.com/yandexru45/netshift/refs/heads/main/netshift/files/etc/config/netshift
+wget -O /etc/config/netshift https://raw.githubusercontent.com/vbymrf/netshift_fork_add_block/refs/heads/fail-closed/netshift/files/etc/config/netshift
 # затем настроить заново через LuCI или UCI
 ```
 
 </details>
 
-## Установка NetShift
+## Отличия от официального NetShift
 
-Полная инструкция - в [документации](https://podkop.net/docs/install/).
+Этот форк основан на upstream NetShift и добавляет опциональную **fail-closed** защиту. Остальные компоненты (sing-box, sing-box-extended, community-списки) берутся из тех же upstream-источников.
 
-Для установки и обновления достаточно одного скрипта:
+| Тема | [Официальный NetShift](https://github.com/yandexru45/netshift) | Этот форк |
+|---|---|---|
+| Fail-closed | Нет | Опция **Fail-closed protection** в секции proxy/vpn (UCI `fail_closed`) |
+| Поведение при недоступном VPN | Трафик секции может уйти в direct (fail-open) | Защищённый трафик **не** уходит в direct: reject при недоступном outbound на старте; при runtime-сбое — таймаут, не утечка |
+| Health-check | — | **Нет** URLTest/опроса доступности (статическая защита) |
+| Падение sing-box | Полный stop + восстановление dnsmasq | При активном fail-closed: **nft + DNS остаются**, перезапускается только sing-box |
+| Явный `netshift stop` | Полная остановка | Как в upstream — полный teardown |
+| Self-update / install | `yandexru45/netshift` | `vbymrf/netshift_fork_add_block` |
+| sing-box, extended, списки | upstream feeds / `shtorm-7` / `itdoginfo` | **Без изменений** — те же источники |
+
+**Ограничения fail-closed:**
+
+- Работает только в секциях `proxy` / `vpn` с включённым флагом.
+- NetShift должен управлять DNS роутера (не включайте «Do not touch DHCP» / `dont_touch_dhcp`).
+- При runtime-проблемах VPN соединения завершаются таймаутом, а не мгновенным reject.
+- Для xhttp/splithttp по-прежнему нужен **sing-box-extended** (как в upstream).
+
+## Установка NetShift (форк)
+
+Справка по зависимостям OpenWrt — в [документации upstream](https://podkop.net/docs/install/).
+
+### Установка и обновление одной командой
 
 ```sh
-sh <(wget -O - https://raw.githubusercontent.com/yandexru45/netshift/refs/heads/main/install.sh)
+sh <(wget -O - https://raw.githubusercontent.com/vbymrf/netshift_fork_add_block/refs/heads/fail-closed/install.sh)
 ```
 
+Скрипт скачивает последний [Release](https://github.com/vbymrf/netshift_fork_add_block/releases) (`.ipk` или `.apk` в зависимости от системы пакетов) и устанавливает `netshift` + `luci-app-netshift`.
+
 Интерфейс появится в LuCI: **Services → NetShift**.
+
+### Ручная установка из Release
+
+Скачайте пакеты с [страницы Releases](https://github.com/vbymrf/netshift_fork_add_block/releases) и установите на роутере:
+
+```sh
+opkg install ./netshift-*.ipk ./luci-app-netshift-*.ipk
+# опционально русская локализация:
+opkg install ./luci-i18n-netshift-ru-*.ipk
+```
+
+Для сборок на `apk` (OpenWrt 25.12+):
+
+```sh
+apk add --allow-untrusted ./netshift-*.apk ./luci-app-netshift-*.apk
+```
+
+### Рекомендации после установки
+
+- Зафиксируйте пакеты, чтобы случайный `opkg upgrade` не подменил форк чужим feed:
+  ```sh
+  opkg hold netshift luci-app-netshift
+  ```
+- Self-update NetShift: LuCI → **Менеджер компонентов** → проверка/установка обновлений с **этого** репозитория.
+- Включить fail-closed: LuCI → секция proxy/vpn → **Fail-closed protection**, или:
+  ```sh
+  uci set netshift.<section>.fail_closed='1'
+  uci commit netshift
+  /etc/init.d/netshift restart
+  ```
 
 <details>
 <summary><b>Готовые community-списки</b></summary>
@@ -251,12 +304,15 @@ uci commit netshift
 
 ## История изменений
 
-Полный список изменений по версиям - на странице [Releases](https://github.com/yandexru45/netshift/releases). Анонсы обновлений публикуются в [Telegram-канале](https://t.me/netshift_news).
+Таблица ниже описывает **upstream** NetShift. Для этого форка актуальная версия публикуется в [Releases форка](https://github.com/vbymrf/netshift_fork_add_block/releases) (тег `0.8.9-failclosed` и новее). Анонсы официальных обновлений — в [Telegram-канале](https://t.me/netshift_news) upstream-проекта.
 
-Коротко о крупных вехах:
+Полный список изменений upstream — на странице [Releases](https://github.com/yandexru45/netshift/releases).
+
+Коротко о крупных вехах upstream:
 
 | Версия | Главное |
 |---|---|
+| **0.8.9-failclosed** (форк) | Fail-closed защита секции proxy/vpn; install/self-update с форка |
 | **0.9.1** | Авто-выбор «⚡ Самый быстрый» среди групп (URLTest над URLTest'ами) |
 | **0.9.0** | Меньше ошибок «лимит GitHub API» (обход через redirect-путь github.com); фикс старого `option subscription_url` |
 | **0.8.9** | Универсальная группировка подписки (страна / префикс имени); поддержка gzip-подписок; фикс ложного «версия устарела» |
