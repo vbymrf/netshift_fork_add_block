@@ -49,7 +49,7 @@ jobs:
         run: docker compose -f tests/docker-compose.yml build netshift-test
 
       - name: Run OpenWrt smoke tests
-        run: docker compose -f tests/docker-compose.yml run --rm netshift-test all
+        run: docker compose -f tests/docker-compose.yml run --rm -T netshift-test all
 
       - name: Upload test logs on failure
         if: failure()

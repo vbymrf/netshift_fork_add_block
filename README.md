@@ -304,7 +304,7 @@ uci commit netshift
 
 ## История изменений
 
-Таблица ниже описывает **upstream** NetShift. Для этого форка актуальная версия публикуется в [Releases форка](https://github.com/vbymrf/netshift_fork_add_block/releases) (тег `0.8.9-failclosed` и новее). Анонсы официальных обновлений — в [Telegram-канале](https://t.me/netshift_news) upstream-проекта.
+Таблица ниже описывает **upstream** NetShift. Для этого форка актуальная версия публикуется в [Releases форка](https://github.com/vbymrf/netshift_fork_add_block/releases) (тег `0.8.9.1` и новее). Анонсы официальных обновлений — в [Telegram-канале](https://t.me/netshift_news) upstream-проекта.
 
 Полный список изменений upstream — на странице [Releases](https://github.com/yandexru45/netshift/releases).
 
@@ -312,7 +312,7 @@ uci commit netshift
 
 | Версия | Главное |
 |---|---|
-| **0.8.9-failclosed** (форк) | Fail-closed защита секции proxy/vpn; install/self-update с форка |
+| **0.8.9.1** (форк) | Fail-closed защита секции proxy/vpn; install/self-update с форка |
 | **0.9.1** | Авто-выбор «⚡ Самый быстрый» среди групп (URLTest над URLTest'ами) |
 | **0.9.0** | Меньше ошибок «лимит GitHub API» (обход через redirect-путь github.com); фикс старого `option subscription_url` |
 | **0.8.9** | Универсальная группировка подписки (страна / префикс имени); поддержка gzip-подписок; фикс ложного «версия устарела» |
@@ -354,6 +354,8 @@ uci commit netshift
 ## Build Artifacts
 
 Пакеты собираются в Docker-образах OpenWrt SDK (`.ipk` - 24.10, `.apk` - 25.12) и публикуются как релиз при push git-тега ([`.github/workflows/build.yml`](.github/workflows/build.yml)).
+
+**Формат тега для релиза (ipk + apk):** только цифры и точки, без префикса `v` и без дефисов — например `0.8.9`, `0.8.9.1`. Теги вроде `0.8.9-failclosed` проходят для `.ipk`, но **ломают сборку `.apk`** (OpenWrt apk отклоняет такую версию пакета). Описание форка (fail-closed и т.п.) — в названии/notes релиза, не в самом теге.
 
 | Пакет | Формат | Назначение |
 |---|---|---|
