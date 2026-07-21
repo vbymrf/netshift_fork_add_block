@@ -23,7 +23,7 @@
 
 **NetShift** - маршрутизатор трафика для OpenWrt. Направляйте нужные ресурсы в туннель, а остальное - напрямую. Открытое ПО на базе [sing-box](https://github.com/SagerNet/sing-box).
 
-Это форк [itdoginfo/podkop](https://github.com/itdoginfo/podkop), значительно расширяющий функциональность. Данный репозиторий — **неофициальный форк** [официального NetShift](https://github.com/yandexru45/netshift) с добавленной **fail-closed** защитой. Установка и self-update пакетов NetShift идут **только с этого репозитория** ([`vbymrf/netshift_fork_add_block`](https://github.com/vbymrf/netshift_fork_add_block)).
+Данный репозиторий — **неофициальный форк** [официального NetShift](https://github.com/yandexru45/netshift) с добавленной **fail-closed** защитой. Рекомендую использовать официальный репозиторий! Установка и self-update пакетов NetShift идут **только с этого репозитория** ([`vbymrf/netshift_fork_add_block`](https://github.com/vbymrf/netshift_fork_add_block)).
 
 > [!WARNING]
 > Проект находится в стадии бета-версии. Возможны ошибки, нестабильная работа и существенные изменения функциональности.
