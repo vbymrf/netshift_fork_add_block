@@ -412,7 +412,9 @@ function renderDiagnosticAvailableActionsWidget() {
     },
     stop: {
       loading: diagnosticsActions.stop.loading,
-      visible: singBoxRunning,
+      // Always show Stop: fail_closed can keep nft/DNS active while sing-box is
+      // dead, so sing-box process state must not gate the emergency teardown path.
+      visible: true,
       onClick: handleStop,
       disabled: atLeastOneServiceCommandLoading,
     },
