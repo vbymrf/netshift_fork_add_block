@@ -27,10 +27,11 @@ jobs:
   smoke-tests:
     name: OpenWrt rootfs smoke tests
     runs-on: ubuntu-24.04
-    continue-on-error: true
     timeout-minutes: 20
     needs:
       - validate-tag
+    env:
+      COMPOSE_INTERACTIVE_NO_CLI: 1
     steps:
       - uses: actions/checkout@v5.0.0
 
@@ -47,7 +48,11 @@ jobs:
           mkdir -p tests/test-results
           for attempt in 1 2 3; do
             echo "Smoke tests attempt ${attempt}/3"
-            if docker compose -f tests/docker-compose.yml run --rm -T netshift-test all | tee "tests/test-results/smoke-attempt-${attempt}.log"; then
+            set +e
+            docker compose -f tests/docker-compose.yml run --rm -T netshift-test all 2>&1 | tee "tests/test-results/smoke-attempt-${attempt}.log"
+            rc=${PIPESTATUS[0]}
+            set -e
+            if [ "$rc" -eq 0 ]; then
               exit 0
             fi
             if [ "$attempt" -lt 3 ]; then
@@ -96,6 +101,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - preparation
+      - smoke-tests
     strategy:
       matrix:
         include:

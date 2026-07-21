@@ -23,7 +23,6 @@ services:
       args:
         - NETSHIFT_VERSION=test
     image: netshift-evolution:test
-    container_name: netshift-test
     hostname: OpenWrt
 
     # ── Kernel capabilities for nftables ────────────────────────
@@ -62,5 +61,3 @@ services:
 
     # Don't restart — this is a test container
     restart: "no"
-    stdin_open: true
-    tty: true
