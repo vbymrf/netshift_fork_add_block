@@ -143,6 +143,12 @@ sh <(wget -O - https://raw.githubusercontent.com/vbymrf/netshift_fork_add_block/
 
 Интерфейс появится в LuCI: **Services → NetShift**.
 
+### Если не удалось успешно установить из за пакета nextdns - удалите его
+
+```sh
+opkg remove --force-removal-of-dependent-packages nextdns
+```
+
 ### Ручная установка из Release
 
 Скачайте пакеты с [страницы Releases](https://github.com/vbymrf/netshift_fork_add_block/releases) и установите на роутере:
