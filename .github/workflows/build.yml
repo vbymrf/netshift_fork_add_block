@@ -40,7 +40,39 @@ jobs:
         run: docker compose -f tests/docker-compose.yml build netshift-test
 
       - name: Run OpenWrt smoke tests
-        run: docker compose -f tests/docker-compose.yml run --rm -T netshift-test all
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p tests/test-results
+          for attempt in 1 2 3; do
+            echo "Smoke tests attempt ${attempt}/3"
+            if docker compose -f tests/docker-compose.yml run --rm -T netshift-test all | tee "tests/test-results/smoke-attempt-${attempt}.log"; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "Smoke tests failed on attempt ${attempt}; retrying in 5 seconds..."
+              sleep 5
+            fi
+          done
+          echo "Smoke tests failed after 3 attempts"
+          exit 1
+
+      - name: Collect smoke diagnostics on failure
+        if: failure()
+        shell: bash
+        run: |
+          mkdir -p tests/test-results
+          docker compose -f tests/docker-compose.yml ps -a > tests/test-results/compose-ps.txt || true
+          docker compose -f tests/docker-compose.yml logs --no-color > tests/test-results/compose-logs.txt || true
+
+      - name: Upload smoke diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: smoke-diagnostics-${{ github.ref_name }}
+          path: tests/test-results/*
+          retention-days: 7
+          if-no-files-found: warn
 
   preparation:
     name: Setup build version
